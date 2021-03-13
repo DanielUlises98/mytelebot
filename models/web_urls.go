@@ -1,32 +1,18 @@
 package models
 
 import (
-	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq" //Driver for postgres
+	"github.com/DanielUlises98/mytelebot/KEYS"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-// InitDB ... asdasd
-func InitDB() (*sql.DB, error) {
-	var err error
-	db, err := sql.Open("postgres",
-		"postgres://postgres:kuroko9.@localhost/mydb?sslmode=disable")
+func InitDB() *gorm.DB {
+	dsn := KEYS.DSN
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		log.Fatal(err.Error(), " Un error al conectar con la base de datos")
 	}
-	//Create model for our URL service
-	stmt, err := db.Prepare("CREATE TABLE WEB_URL (ID SERIAL PRIMARY KEY, URL TEXT NOT NULL);")
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	res, err := stmt.Exec()
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	log.Println(res, "Succesfully created")
-	return db, nil
-
+	return db
 }

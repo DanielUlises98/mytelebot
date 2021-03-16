@@ -12,7 +12,8 @@ func main() {
 	bot := tbstart.StartBot()
 
 	caller := API.DBTLClient{DB: db, TB: bot}
-	caller.CreateNewUser()
+	//caller.CreateNewUser()
+	caller.Send()
 	bot.Start()
 }
 

@@ -49,10 +49,4 @@ func (driver DBTLClient) CreateNewUser() {
 			driver.TB.Send(m.Sender, "You are alredy subscribed")
 		}
 	})
-
-	// if user.ChatId == userq.ChatId {
-
-	// }
-	//log.Fatal(userq.ChatId)
-	//driver.DB.Create(&user)
 }

@@ -34,8 +34,11 @@ type Anime struct {
 	Attri   Attributes `json:"attributes"`
 }
 
-type MainData struct {
-	Data *Anime `json:"data"`
+type ArrayData struct {
+	Data []Anime `json:"data"`
+}
+type OData struct {
+	Data Anime `json:"data"`
 }
 
 type Animes interface {
@@ -50,27 +53,29 @@ func (A Anime) GetAttributes() Attributes {
 	return A.Attri
 }
 
-func Populate() {
-	resp, err := http.Get("https://kitsu.io/api/edge/anime/41370")
+func SearchAnime(animeName string) {
+	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[text]=" + animeName + "&page[limit]=1")
 	if err != nil {
-		log.Fatal(err, "get failed")
+		log.Fatal(err, "Couldn't GET the json")
 	}
 	defer resp.Body.Close()
+
 	wr, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err, "Couldn't read the body")
 	}
 	//log.Println(string(wr))
-	anime := &MainData{}
+	anime := &ArrayData{}
 	//anime.Data = make([]Anime, 0)
 
-	anime.Data = &Anime{}
+	//anime.Data = &Anime{}
 	err_ := json.Unmarshal(wr, anime)
 	if err_ != nil {
-		log.Fatal(err_)
+		log.Fatal(err_, "Couldn't unmarshal the json")
 	}
-	log.Println(anime.Data.GetAnimeId())
-	log.Println(anime.Data.GetAttributes())
+
+	log.Println(anime.Data[0].GetAnimeId())
+	log.Println(anime.Data[0].GetAttributes().Titles.English)
 }
 
 // var prettyJSON bytes.Buffer

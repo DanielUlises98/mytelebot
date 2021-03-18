@@ -2,7 +2,7 @@ package API
 
 import "gopkg.in/tucnak/telebot.v2"
 
-func (driver DBTLClient) Send() {
-	spawn := &telebot.User{ID: 695139185}
-	driver.TB.Send(spawn, "hola")
+func (driver DBTLClient) SendMessage(chatId int, message string) {
+	spawn := &telebot.User{ID: chatId}
+	driver.TB.Send(spawn, message)
 }

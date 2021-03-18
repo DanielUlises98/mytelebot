@@ -1,35 +1,7 @@
 package main
 
-import "github.com/DanielUlises98/mytelebot/kitsu"
-
-// type Animes interface {
-// 	GetType() string
-// }
-// type Anime struct {
-// 	Type string `json:"type"`
-// }
-
-// type StartPoint struct {
-// 	Data []Anime `json:"data"`
-// }
-
-// func (A Anime) GetType() string {
-// 	return A.Type
-// }
 func main() {
-	kitsu.Populate()
-	// var prettyJSON bytes.Buffer
-	// err_ := json.Indent(&prettyJSON, wr, "", "    ")
-	// if err_ != nil {
-	// 	log.Fatal(err_, "Couldn't marshal")
-	// }
-	// fmt.Println(string(prettyJSON.Bytes()))
-	// db := models.InitDB()
-	// bot := tbstart.StartBot()
 
-	// caller := API.DBTLClient{DB: db, TB: bot}
-	// caller.CreateNewUser()
-	// bot.Start()
 }
 
 /*

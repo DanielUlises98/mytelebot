@@ -18,20 +18,20 @@ type PosterImage struct {
 }
 
 type Attributes struct {
-	Slug         string        `json:"slug"`
-	Titles       []Titles      `json:"titles"`
-	StartDate    string        `json:"startDate"`
-	EndDate      string        `json:"endDate"`
-	Status       string        `json:"status"`
-	PosterImage  []PosterImage `json:"posterImage"`
-	EpisodeCount int           `json:"episodeCount"`
-	ShowType     string        `json:"showType"`
-	NSFW         bool          `json:"nsfw"`
+	Slug         string      `json:"slug"`
+	Titles       Titles      `json:"titles"`
+	StartDate    string      `json:"startDate"`
+	EndDate      string      `json:"endDate"`
+	Status       string      `json:"status"`
+	PosterImage  PosterImage `json:"posterImage"`
+	EpisodeCount int         `json:"episodeCount"`
+	ShowType     string      `json:"showType"`
+	NSFW         bool        `json:"nsfw"`
 }
 
 type Anime struct {
-	IdAnime    string     `json:"id"`
-	Attributes Attributes `json:"attributes"`
+	IdAnime string     `json:"id"`
+	Attri   Attributes `json:"attributes"`
 }
 
 type MainData struct {
@@ -45,6 +45,9 @@ type Animes interface {
 
 func (A Anime) GetAnimeId() string {
 	return A.IdAnime
+}
+func (A Anime) GetAttributes() Attributes {
+	return A.Attri
 }
 
 func Populate() {
@@ -67,4 +70,12 @@ func Populate() {
 		log.Fatal(err_)
 	}
 	log.Println(anime.Data.GetAnimeId())
+	log.Println(anime.Data.GetAttributes())
 }
+
+// var prettyJSON bytes.Buffer
+// err_ := json.Indent(&prettyJSON, wr, "", "    ")
+// if err_ != nil {
+// 	log.Fatal(err_, "Couldn't marshal")
+// }
+// fmt.Println(string(prettyJSON.Bytes()))

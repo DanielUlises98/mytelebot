@@ -2,7 +2,6 @@ package models
 
 import (
 	"log"
-	"time"
 
 	"github.com/DanielUlises98/mytelebot/KEYS"
 	"gorm.io/driver/postgres"
@@ -12,13 +11,6 @@ import (
 // type Animes struct {
 
 // }
-type User struct {
-	ID        uint `gorm:"autoIncrement"`
-	Username  string
-	ChatId    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
 
 func InitDB() *gorm.DB {
 	dsn := KEYS.DSN

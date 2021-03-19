@@ -1,16 +1,11 @@
 package main
 
 import (
-	"github.com/DanielUlises98/mytelebot/API"
-	"github.com/DanielUlises98/mytelebot/tbstart"
-	"gorm.io/gorm"
+	"github.com/DanielUlises98/mytelebot/tbBot"
 )
 
 func main() {
-	bot := tbstart.StartBot()
-	api := API.DBTLClient{TB: bot, DB: &gorm.DB{}}
-	api.InlineTest()
-	bot.Start()
+	tbBot.StartBot()
 }
 
 /*

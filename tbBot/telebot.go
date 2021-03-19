@@ -1,4 +1,4 @@
-package tbstart
+package tbBot
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func StartBot() *tb.Bot {
+func StartBot() {
 	b, err := tb.NewBot(tb.Settings{
 		// You can also set custom API URL.
 		// If field is empty it equals to "https://api.telegram.org".
@@ -17,10 +17,13 @@ func StartBot() *tb.Bot {
 		Token:  KEYS.TELEBOT_KEY,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
-
 	if err != nil {
 		log.Fatal(err)
 	}
-	return b
+	bot := new(TheBot)
+	bot.TB = b
+	bot.InlineTest()
 
+	// Start the bot at the end
+	bot.TB.Start()
 }

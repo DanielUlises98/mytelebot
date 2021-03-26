@@ -1,38 +1,66 @@
 package tbBot
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (driver TheBot) Start() {
+func (driver TheBot) StartEndPoint() {
 	driver.TB.Handle("/start", func(m *tb.Message) {
 		if !m.Private() {
 			return
 		}
 
-		// chatId, err := json.Marshal(m.Chat.ID)
-		// if err != nil {
-		// 	log.Fatal(err, "there is something wrong with marshal of chatid ")
-		// }
+		username, err := json.Marshal(m.Chat.Username)
+		if err != nil {
+			log.Fatal(err, "there is something wrong with marshal of username ")
+		}
 
-		// username, err := json.Marshal(m.Chat.Username)
-		// if err != nil {
-		// 	log.Fatal(err, "there is something wrong with marshal of username ")
-		// }
-		// driver.DB.CreateNewUser(string(username), string(chatId))
+		chatId, err := json.Marshal(m.Chat.ID)
+		if err != nil {
+			log.Fatal(err, "there is something wrong with marshal of chatid ")
+		}
+
+		result := driver.H.NewUser(string(username), string(chatId))
+		driver.TB.Send(m.Sender, result)
 	})
 }
+
 func (driver TheBot) SendMessage(chatId int, message string) {
 	spawn := &tb.User{ID: chatId}
 	driver.TB.Send(spawn, message)
 }
 
-func (driver TheBot) InlineTest() {
-
+// Maybe will work for other things
+func (driver TheBot) QueryKeyboard() {
 	var (
-		isAddAnime bool = false
+		inlineKeyboard = &tb.ReplyMarkup{}
+
+		query     = inlineKeyboard.Query("hi", "")
+		queryChat = inlineKeyboard.QueryChat("bye", "")
+	)
+
+	inlineKeyboard.Inline(
+		inlineKeyboard.Row(query, queryChat),
+	)
+
+	driver.TB.Handle("/other", func(m *tb.Message) {
+		driver.TB.Send(m.Sender, "other", inlineKeyboard)
+	})
+	driver.TB.Handle(tb.OnQuery, func(q *tb.Query) {
+		log.Println(q.Text)
+	})
+	// driver.TB.Handle(&query, func(q *tb.Query) {
+	// 	log.Println(q.Text)
+	// })
+
+}
+
+func (driver TheBot) InlineKeyboard() {
+	var (
+		chatID string = ""
 		// Universal markup builders.
 		inlaneAnime = &tb.ReplyMarkup{}
 		inlaneMenu  = &tb.ReplyMarkup{}
@@ -89,13 +117,25 @@ func (driver TheBot) InlineTest() {
 	driver.TB.Handle(&addAnime, func(c *tb.Callback) {
 		driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
 		driver.TB.Send(c.Sender, "Send the name of the anime")
-		isAddAnime = true
+
+		chatID = ChatID(c.Message.Chat)
 	})
+
 	driver.TB.Handle(tb.OnText, func(m *tb.Message) {
-		if isAddAnime {
-			//functionThatAddsAnime(m.text)
-			fmt.Println("hola")
+		if chatID != "" {
+			log.Println("Call the DB", chatID)
+			chatID = ""
+			return
 		}
-		isAddAnime = false
+		log.Println(m.Text)
 	})
+}
+
+func ChatID(chat *tb.Chat) (ci string) {
+	byteC, err := json.Marshal(chat.ID)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	ci = string(byteC)
+	return
 }

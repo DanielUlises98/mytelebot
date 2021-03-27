@@ -35,6 +35,8 @@ func (driver DBClient) NewUser(username, chatId string) string {
 	}
 }
 
+//AssociateAnime adds new animes to db and links them to a user
+//An associates existing animes to a user
 func (driver DBClient) AssociateAnime(ci string, anime models.Anime) {
 	user := &models.User{}
 	driver.DB.Where("chat_id = ?", ci).First(&user)

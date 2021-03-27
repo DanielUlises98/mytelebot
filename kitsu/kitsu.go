@@ -30,7 +30,7 @@ type Attributes struct {
 }
 
 type Anime struct {
-	IdAnime string     `json:"id"`
+	IDAnime string     `json:"id"`
 	Attri   Attributes `json:"attributes"`
 }
 
@@ -42,18 +42,18 @@ type OData struct {
 }
 
 type Animes interface {
-	GetAnimeId() int
-	GetAttributes() Attributes
+	AnimeID() int
+	Attributes() Attributes
 }
 
-func (A Anime) GetAnimeId() string {
-	return A.IdAnime
+func (A Anime) AnimeID() string {
+	return A.IDAnime
 }
-func (A Anime) GetAttributes() Attributes {
+func (A Anime) Attributes() Attributes {
 	return A.Attri
 }
 
-func SearchAnime(animeName string) {
+func SearchAnime(animeName string) (animeID string) {
 	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[text]=" + animeName + "&page[limit]=1")
 	if err != nil {
 		log.Fatal(err, "Couldn't GET the json")
@@ -74,8 +74,8 @@ func SearchAnime(animeName string) {
 		log.Fatal(err_, "Couldn't unmarshal the json")
 	}
 
-	log.Println(anime.Data[0].GetAnimeId())
-	log.Println(anime.Data[0].GetAttributes().Titles.English)
+	animeID = anime.Data[0].AnimeID()
+	return
 }
 
 // var prettyJSON bytes.Buffer

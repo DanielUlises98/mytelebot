@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/DanielUlises98/mytelebot/kitsu"
+	"github.com/DanielUlises98/mytelebot/models"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -123,7 +125,8 @@ func (driver TheBot) InlineKeyboard() {
 
 	driver.TB.Handle(tb.OnText, func(m *tb.Message) {
 		if chatID != "" {
-			log.Println("Call the DB", chatID)
+			animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
+			driver.H.AssociateAnime(chatID, animeID)
 			chatID = ""
 			return
 		}

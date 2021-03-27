@@ -1,19 +1,16 @@
 package main
 
 import (
-	"github.com/DanielUlises98/mytelebot/API"
-	"github.com/DanielUlises98/mytelebot/models"
+	"github.com/DanielUlises98/mytelebot/tbBot"
 )
 
-var (
-	api API.DBClient
-)
+// var (
+// 	api API.DBClient
+// )
 
 func main() {
-	//tbBot.StartBot()
-	api = API.DBClient{DB: models.InitDB()}
-
-	api.AssociateAnime("695139185", models.Anime{IdAnime: "55555"})
+	tbBot.StartBot()
+	//api = API.DBClient{DB: models.InitDB()}
 }
 
 /*

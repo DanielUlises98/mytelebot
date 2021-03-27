@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/DanielUlises98/mytelebot/tbBot"
+	"github.com/DanielUlises98/mytelebot/kitsu"
 )
 
 // var (
@@ -9,8 +9,12 @@ import (
 // )
 
 func main() {
-	tbBot.StartBot()
+	//tbBot.StartBot()
 	//api = API.DBClient{DB: models.InitDB()}
+	// bears(&Bear{})
+	// bears(&PolarBear{})
+	kitsu.SearchAnime("Naruto")
+	kitsu.SearchAnimeByID("11")
 }
 
 /*

@@ -40,7 +40,10 @@ type ArrayData struct {
 type OData struct {
 	Data Anime `json:"data"`
 }
-
+type DataParent struct {
+	Array ArrayData
+	One   OData
+}
 type Animes interface {
 	AnimeID() int
 	Attributes() Attributes
@@ -59,23 +62,31 @@ func SearchAnime(animeName string) (animeID string) {
 		log.Fatal(err, "Couldn't GET the json")
 	}
 	defer resp.Body.Close()
+	animes := &ArrayData{}
+	jsonUnmarshal(resp.Body, animes)
+	animeID = animes.Data[0].AnimeID()
+	return
+}
 
-	wr, err := io.ReadAll(resp.Body)
+func SearchAnimeByID(animeID string) {
+	resp, err := http.Get("https://kitsu.io/api/edge/anime/" + animeID)
+	if err != nil {
+		log.Fatal(err, "Couldn't GET the json")
+	}
+	defer resp.Body.Close()
+	anime := &OData{}
+	jsonUnmarshal(resp.Body, anime)
+	//fmt.Printf("%+v\n", anime.Data.Attributes().Titles)
+}
+func jsonUnmarshal(r io.Reader, anime interface{}) {
+	wr, err := io.ReadAll(r)
 	if err != nil {
 		log.Fatal(err, "Couldn't read the body")
 	}
-	//log.Println(string(wr))
-	anime := &ArrayData{}
-	//anime.Data = make([]Anime, 0)
-
-	//anime.Data = &Anime{}
-	err_ := json.Unmarshal(wr, anime)
+	err_ := json.Unmarshal(wr, &anime)
 	if err_ != nil {
 		log.Fatal(err_, "Couldn't unmarshal the json")
 	}
-
-	animeID = anime.Data[0].AnimeID()
-	return
 }
 
 // var prettyJSON bytes.Buffer

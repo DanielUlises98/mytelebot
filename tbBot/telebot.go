@@ -63,9 +63,12 @@ func StartBot() {
 	//bot.StartEndPoint()
 	bot.TB.Handle("/start", bot.Start)
 	bot.TB.Handle("/anime", bot.Anime)
+	bot.TB.Handle("/animes", bot.Animes) // will display a linearKeyboard of  alredy added by the user
+
 	bot.TB.Handle(&animes, bot.AnimeButtons)
 	bot.TB.Handle(&goBack, bot.GoBackButton)
 	bot.TB.Handle(&addAnime, bot.AddAnime)
+
 	bot.TB.Handle(tb.OnText, bot.TextFromChat)
 
 	//bot.QueryKeyboard()

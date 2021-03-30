@@ -2,10 +2,10 @@ package tbBot
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/DanielUlises98/mytelebot/kitsu"
-	"github.com/DanielUlises98/mytelebot/models"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
@@ -27,6 +27,21 @@ func (driver TheBot) Start(m *tb.Message) {
 	result := driver.H.NewUser(string(username), string(chatId))
 	driver.TB.Send(m.Sender, result)
 }
+
+func (driver TheBot) Animes(m *tb.Message) {
+	inlaneAnimes := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
+	animes := driver.H.UserAnimes(ChatID(m.Chat))
+
+	animesRows := make([]tb.Row, len(animes))
+
+	for i, anime := range animes {
+		animesRows[i] = tb.Row{inlaneAnimes.Data(anime.IdAnime, fmt.Sprint(i))}
+	}
+
+	inlaneAnimes.Inline(animesRows...)
+	driver.TB.Send(m.Sender, "Animes", inlaneAnimes)
+}
+
 func (driver TheBot) Anime(m *tb.Message) {
 	if !m.Private() {
 		return
@@ -43,25 +58,27 @@ func (driver TheBot) AnimeButtons(c *tb.Callback) {
 	driver.TB.Edit(c.Message, "Here is the menu!", inlaneMenu)
 	//driver.TB.EditReplyMarkup(c.Message, inlaneOther)
 }
+
 func (driver TheBot) GoBackButton(c *tb.Callback) {
 	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
 
 	driver.TB.Edit(c.Message, "Animes", inlaneAnime)
 }
+
 func (driver TheBot) AddAnime(c *tb.Callback) {
 	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
 	driver.TB.Send(c.Sender, "Send the name of the anime")
 
 	chatID = ChatID(c.Message.Chat)
 }
+
 func (driver TheBot) TextFromChat(m *tb.Message) {
 	if chatID != "" {
-		animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
-		driver.H.AssociateAnime(chatID, animeID)
+		//animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
+		driver.H.AssociateAnime(chatID, kitsu.SearchAnime(m.Text))
 		chatID = ""
 		return
 	}
-	log.Println(m.Text)
 }
 
 func ChatID(chat *tb.Chat) (ci string) {

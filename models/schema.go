@@ -19,9 +19,20 @@ type User struct {
 }
 
 type Anime struct {
-	ID      uint `gorm:"autoIncrement;primaryKey"`
-	IdAnime string
-	User    []*User `gorm:"many2many:user_animes;"`
+	ID             uint `gorm:"autoIncrement;primaryKey"`
+	Episodes       uint
+	CurrentEpisode uint
+	IdAnime        string
+	Name           string
+	ImageMedium    string
+	ImageOriginal  string
+	Status         bool
+	RemindUser     bool
+	StartDate      time.Time
+	EndDate        time.Time
+	CreatedAt      time.Time
+	DeletedAt      gorm.DeletedAt
+	User           []*User `gorm:"many2many:user_animes;"`
 }
 
 type UserAnimes struct {

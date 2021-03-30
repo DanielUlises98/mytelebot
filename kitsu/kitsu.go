@@ -2,9 +2,14 @@ package kitsu
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
+	"time"
+
+	"github.com/DanielUlises98/mytelebot/models"
 )
 
 type Titles struct {
@@ -56,37 +61,86 @@ func (A Anime) Attributes() Attributes {
 	return A.Attri
 }
 
-func SearchAnime(animeName string) (animeID string) {
-	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[text]=" + animeName + "&page[limit]=1")
+func SearchAnime(animeName string) (anime models.Anime) {
+
+	animeName = strings.Replace(animeName, " ", "%20", -1)
+
+	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[subtype]=TV&filter[text]=" + animeName + "&page[limit]=1")
 	if err != nil {
-		log.Fatal(err, "Couldn't GET the json")
+		log.Fatal(err, "Couldn't reach the KITSU API")
 	}
 	defer resp.Body.Close()
-	animes := &ArrayData{}
-	jsonUnmarshal(resp.Body, animes)
-	animeID = animes.Data[0].AnimeID()
-	return
+	dt := &ArrayData{}
+	jsonUnmarshal(resp.Body, dt)
+	return animeWrapper(dt)
 }
 
 func SearchAnimeByID(animeID string) {
 	resp, err := http.Get("https://kitsu.io/api/edge/anime/" + animeID)
 	if err != nil {
-		log.Fatal(err, "Couldn't GET the json")
+		log.Fatal(err, " Couldn't GET the json")
 	}
 	defer resp.Body.Close()
 	anime := &OData{}
 	jsonUnmarshal(resp.Body, anime)
 	//fmt.Printf("%+v\n", anime.Data.Attributes().Titles)
 }
+
 func jsonUnmarshal(r io.Reader, anime interface{}) {
 	wr, err := io.ReadAll(r)
 	if err != nil {
-		log.Fatal(err, "Couldn't read the body")
+		log.Fatal(err, " Couldn't read the body")
 	}
-	err_ := json.Unmarshal(wr, &anime)
-	if err_ != nil {
-		log.Fatal(err_, "Couldn't unmarshal the json")
+	fmt.Printf("%+v\n", string(wr))
+	err = json.Unmarshal(wr, &anime)
+	// if err_ != nil {
+	// 	log.Printf("verbose error info: %#v", err)
+	// 	log.Fatal(err_.Error(), " Couldn't unmarshal the json")
+	// }
+	if err != nil {
+		log.Printf("error decoding sakura response: %v", err)
+		if e, ok := err.(*json.SyntaxError); ok {
+			log.Printf("syntax error at byte offset %d", e.Offset)
+		}
+		log.Printf("sakura response: %q", r)
 	}
+}
+
+const (
+	startDefaultEp = 1
+)
+
+func animeWrapper(dt *ArrayData) (anime models.Anime) {
+	anime = models.Anime{
+		Episodes:       uint(dt.Data[0].Attributes().EpisodeCount),
+		IdAnime:        dt.Data[0].AnimeID(),
+		Name:           dt.Data[0].Attributes().Titles.EnJp,
+		ImageMedium:    dt.Data[0].Attributes().PosterImage.Medium,
+		ImageOriginal:  dt.Data[0].Attributes().PosterImage.Original,
+		Status:         isStatus(dt.Data[0].Attributes().Status),
+		StartDate:      parseDate(dt.Data[0].Attributes().StartDate),
+		EndDate:        parseDate(dt.Data[0].Attributes().EndDate),
+		CurrentEpisode: startDefaultEp,
+		RemindUser:     true,
+		CreatedAt:      time.Now(),
+	}
+	log.Println(anime)
+	return
+}
+
+func isStatus(status string) bool {
+	return status == "current"
+}
+
+func parseDate(date string) (dt time.Time) {
+	if date == "" {
+		return time.Time{}
+	}
+	t, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		log.Fatal(err.Error(), " Couldn't convert: ", date, " to time")
+	}
+	return t
 }
 
 // var prettyJSON bytes.Buffer

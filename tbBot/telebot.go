@@ -14,7 +14,7 @@ var (
 	chatID string = ""
 	// Universal markup builders.
 	inlaneAnime = &tb.ReplyMarkup{}
-	inlaneMenu  = &tb.ReplyMarkup{}
+	animeMenu   = &tb.ReplyMarkup{}
 
 	// Inline buttons.
 	//
@@ -26,10 +26,10 @@ var (
 	//
 	animes = inlaneAnime.Data("Animes", "animes")
 
-	fav      = inlaneMenu.Data("Favorites", "favorites")
-	Status   = inlaneMenu.Data("Current", "status")
-	goBack   = inlaneMenu.Data("Back Animes", "back")
-	addAnime = inlaneMenu.Data("Add anime", "addanime")
+	fav      = animeMenu.Data("Favorites", "favorites")
+	Status   = animeMenu.Data("Current", "status")
+	goBack   = animeMenu.Data("Back Animes", "back")
+	addAnime = animeMenu.Data("Add anime", "addanime")
 )
 
 func StartBot() {
@@ -47,10 +47,10 @@ func StartBot() {
 	inlaneAnime.Inline(
 		inlaneAnime.Row(animes),
 	)
-	inlaneMenu.Inline(
-		inlaneMenu.Row(fav, Status),
-		inlaneMenu.Row(addAnime),
-		inlaneMenu.Row(goBack),
+	animeMenu.Inline(
+		animeMenu.Row(fav, Status),
+		animeMenu.Row(addAnime),
+		animeMenu.Row(goBack),
 	)
 	//Simplified way
 	bot := TheBot{TB: b, H: API.DBClient{DB: models.InitDB()}}
@@ -63,13 +63,14 @@ func StartBot() {
 	//bot.StartEndPoint()
 	bot.TB.Handle("/start", bot.Start)
 	bot.TB.Handle("/anime", bot.Anime)
-	bot.TB.Handle("/animes", bot.Animes) // will display a linearKeyboard of  alredy added by the user
+	bot.TB.Handle("/animes", bot.ListOfAnimes) // will display a linearKeyboard of  alredy added by the user
 
-	bot.TB.Handle(&animes, bot.AnimeButtons)
+	bot.TB.Handle(&animes, bot.AnimeMenu)
 	bot.TB.Handle(&goBack, bot.GoBackButton)
 	bot.TB.Handle(&addAnime, bot.AddAnime)
 
 	bot.TB.Handle(tb.OnText, bot.TextFromChat)
+	//bot.TB.Handle(tb.OnChosenInlineResult, bot.Anime)
 
 	//bot.QueryKeyboard()
 	// Start the bot at the end

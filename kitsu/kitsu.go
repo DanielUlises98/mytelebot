@@ -2,7 +2,6 @@ package kitsu
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -65,6 +64,7 @@ func SearchAnime(animeName string) (anime models.Anime) {
 
 	animeName = strings.Replace(animeName, " ", "%20", -1)
 
+	// I HAVE TO PUT BY HAND SPECIAL CHARACTERS IN ASCII code
 	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[subtype]=TV&filter[text]=" + animeName + "&page[limit]=1")
 	if err != nil {
 		log.Fatal(err, "Couldn't reach the KITSU API")
@@ -91,18 +91,14 @@ func jsonUnmarshal(r io.Reader, anime interface{}) {
 	if err != nil {
 		log.Fatal(err, " Couldn't read the body")
 	}
-	fmt.Printf("%+v\n", string(wr))
+
+	// DEBUG wr If somethings not working
+	//fmt.Printf("JSON BODY %+v\n", string(wr))
+
 	err = json.Unmarshal(wr, &anime)
-	// if err_ != nil {
-	// 	log.Printf("verbose error info: %#v", err)
-	// 	log.Fatal(err_.Error(), " Couldn't unmarshal the json")
-	// }
 	if err != nil {
-		log.Printf("error decoding sakura response: %v", err)
-		if e, ok := err.(*json.SyntaxError); ok {
-			log.Printf("syntax error at byte offset %d", e.Offset)
-		}
-		log.Printf("sakura response: %q", r)
+		log.Printf("verbose error info: %#v", err)
+		log.Fatal(err.Error(), " Couldn't unmarshal the json")
 	}
 }
 

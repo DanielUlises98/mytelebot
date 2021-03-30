@@ -28,7 +28,7 @@ func (driver TheBot) Start(m *tb.Message) {
 	driver.TB.Send(m.Sender, result)
 }
 
-func (driver TheBot) Animes(m *tb.Message) {
+func (driver TheBot) ListOfAnimes(m *tb.Message) {
 	inlaneAnimes := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
 	animes := driver.H.UserAnimes(ChatID(m.Chat))
 
@@ -49,13 +49,13 @@ func (driver TheBot) Anime(m *tb.Message) {
 	driver.TB.Send(m.Sender, "Animes", inlaneAnime)
 }
 
-func (driver TheBot) AnimeButtons(c *tb.Callback) {
+func (driver TheBot) AnimeMenu(c *tb.Callback) {
 	// ...
 	// Always respond!
 	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
 
 	//EDIT IS THE KEY TO CREATE MENUS
-	driver.TB.Edit(c.Message, "Here is the menu!", inlaneMenu)
+	driver.TB.Edit(c.Message, "Here is the menu!", animeMenu)
 	//driver.TB.EditReplyMarkup(c.Message, inlaneOther)
 }
 
@@ -76,6 +76,7 @@ func (driver TheBot) TextFromChat(m *tb.Message) {
 	if chatID != "" {
 		//animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
 		driver.H.AssociateAnime(chatID, kitsu.SearchAnime(m.Text))
+		driver.SendUser(int(m.Chat.ID), m.Text+" Was Succesfully Added")
 		chatID = ""
 		return
 	}

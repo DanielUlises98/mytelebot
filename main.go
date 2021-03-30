@@ -1,17 +1,14 @@
 package main
 
-import (
-	"github.com/DanielUlises98/mytelebot/kitsu"
-)
+import "github.com/DanielUlises98/mytelebot/tbBot"
 
 // var (
 // 	api API.DBClient
 // )
 
 func main() {
-	//tbBot.StartBot()
+	tbBot.StartBot()
 	//api = API.DBClient{DB: models.InitDB()}
-	kitsu.SearchAnime("kimetsu no yaiba")
 	// bears(&Bear{})
 	// bears(&PolarBear{})
 	// t, err := time.Parse("2006-01-02", "2019-04-06")

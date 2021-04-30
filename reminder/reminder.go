@@ -2,35 +2,35 @@ package reminder
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/DanielUlises98/mytelebot/API"
-	tbbot "github.com/DanielUlises98/mytelebot/tbBot"
+	"github.com/DanielUlises98/mytelebot/tbBot"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"gorm.io/gorm"
 )
 
 const INTERVAL = time.Hour * 24
-const HOUR_TO_FETCH = 23
-const MIN_TO_FETCH = 59
-const SEC_TO_FETCH = 59
+const HOUR_TO_FETCH = 00
+const MIN_TO_FETCH = 01
+const SEC_TO_FETCH = 00
 
 type TimeChan struct {
 	t *time.Timer
 }
 type BotDB struct {
-	bot tbbot.TheBot
+	bot tbBot.TheBot
 }
 
 var (
-	wg       sync.WaitGroup
+	//wg       sync.WaitGroup
 	lenTimes int
 	ua       []API.InnerUA
 )
 
 func (driver BotDB) setUpReminder() {
-	ua = driver.bot.H.Hours()
+	weekday := time.Now().Weekday().String()
+	ua = driver.bot.H.Hours(weekday)
 	lenTimes = len(ua)
 	driver.setWorkers(setTimers(gatherHr(ua)), ua)
 }
@@ -59,15 +59,15 @@ func setTimers(t []time.Time) []TimeChan {
 }
 
 func (driver BotDB) setWorkers(tr []TimeChan, ua []API.InnerUA) {
-	wg.Add(lenTimes)
+	//wg.Add(lenTimes)
 	for i := range tr {
 		go func(t *time.Timer, userId, name string) {
 			<-t.C
 			driver.bot.SendUser(userId, name)
-			wg.Done()
+			//		wg.Done()
 		}(tr[i].t, ua[i].UserID, ua[i].Name)
 	}
-	wg.Wait()
+	//wg.Wait()
 }
 
 func getNextDuration() time.Duration {
@@ -76,7 +76,7 @@ func getNextDuration() time.Duration {
 	if next.Before(now) {
 		next = next.Add(INTERVAL)
 	}
-	fmt.Println(time.Until(next), " Is going to tick")
+	fmt.Println(time.Until(next), " Is going to start the timers")
 	return time.Until(next)
 }
 func newJobTimer() TimeChan {
@@ -97,6 +97,6 @@ func (driver BotDB) StartReminder() {
 	}
 }
 func Init(db *gorm.DB, bot *tb.Bot) {
-	bDB := BotDB{bot: tbbot.TheBot{TB: bot, H: API.DBClient{DB: db}}}
-	bDB.StartReminder()
+	bDB := BotDB{bot: tbBot.TheBot{TB: bot, H: API.DBClient{DB: db}}}
+	go bDB.StartReminder()
 }

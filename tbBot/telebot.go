@@ -51,7 +51,6 @@ func InitHandlers(db *gorm.DB, b *tb.Bot) {
 
 	//bot.QueryKeyboard()
 	// Start the bot at the end
-	fmt.Println("Starting Bot")
 }
 
 func (driver TheBot) Start(m *tb.Message) {
@@ -107,7 +106,7 @@ func (driver TheBot) AddedList(m *tb.Message) {
 
 //command -ID -hour -weekday -remind (number or text)
 func (driver TheBot) ChangeRelease(m *tb.Message) {
-	remind := false
+	var remind bool
 	idDay := strings.Split(m.Payload, " ")
 	if len(idDay) != 4 {
 		driver.TB.Send(m.Sender, "The information is incomplete, I can't procede with the update")
@@ -118,18 +117,28 @@ func (driver TheBot) ChangeRelease(m *tb.Message) {
 		log.Println(err, " Value out of range")
 		return
 	}
-	if idDay[3] == "T" {
+
+	isRemind := strings.ToUpper(idDay[3])
+	if isRemind == "T" {
 		remind = true
+	} else if isRemind == "F" {
+		remind = false
+	} else {
+		driver.TB.Send(m.Sender, "Couldn't determine if it was true or false, so it was set to false")
+		remind = false
 	}
+
 	t, err := time.Parse(time.Kitchen, idDay[1])
 	if err != nil {
 		fmt.Printf("%+v\n", err)
 		driver.TB.Send(m.Sender, "Please reachek the hour , shold be typed in this format00:00PM/AM")
-	} else if wd <= 0 || wd >= 8 {
-		driver.TB.Send(m.Sender, "Please reachek the day, choose in a range of 1 to 7 1 being monday")
-	} else {
-		driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), int8(wd), remind)
+		return
+	} else if wd <= -1 || wd >= 7 {
+		driver.TB.Send(m.Sender, "Please reachek the day, choose in a range of 0 to 6 0 being Sunday")
+		return
 	}
+	driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), time.Weekday(wd).String(), remind)
+
 }
 
 func (driver TheBot) TextFromChat(m *tb.Message) {

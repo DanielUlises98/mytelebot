@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/DanielUlises98/mytelebot/models"
 	"github.com/DanielUlises98/mytelebot/reminder"
-	tbbot "github.com/DanielUlises98/mytelebot/tbBot"
+	"github.com/DanielUlises98/mytelebot/tbBot"
 )
 
 // var (
@@ -12,9 +14,10 @@ import (
 
 func main() {
 	db := models.InitDB()
-	bot := tbbot.StartBot()
-	tbbot.InitHandlers(db, bot)
+	bot := tbBot.StartBot()
+	tbBot.InitHandlers(db, bot)
 	reminder.Init(db, bot)
+	fmt.Println("Starting bot")
 	bot.Start()
 }
 

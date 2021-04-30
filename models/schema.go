@@ -36,8 +36,8 @@ type UserAnimes struct {
 	UserID     string `gorm:"foreignKey"`
 	AnimeID    string `gorm:"foreignKey"`
 	HourRemind string
+	WeekDay    string
 	RemindUser bool `gorm:"default:false"`
-	WeekDay    int8
 	CreatedAt  time.Time
 	DeletedAt  gorm.DeletedAt
 }

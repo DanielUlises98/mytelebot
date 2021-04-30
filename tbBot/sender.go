@@ -4,9 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/DanielUlises98/mytelebot/kitsu"
+	"github.com/DanielUlises98/mytelebot/models"
 	tb "gopkg.in/tucnak/telebot.v2"
+)
+
+var (
+	ma  []models.Anime
+	cid string = ""
 )
 
 func (driver TheBot) Start(m *tb.Message) {
@@ -28,61 +37,93 @@ func (driver TheBot) Start(m *tb.Message) {
 	driver.TB.Send(m.Sender, result)
 }
 
-func (driver TheBot) ListOfAnimes(m *tb.Message) {
-	inlaneAnimes := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
-	animes := driver.H.UserAnimes(ChatID(m.Chat))
+func (driver TheBot) SearchResult(m *tb.Message) {
+	if m.Payload != "" {
+		inlaneAnimes := &tb.ReplyMarkup{
+			ResizeReplyKeyboard: true,
+			ForceReply:          true,
+			OneTimeKeyboard:     true,
+			ReplyKeyboardRemove: true,
+		}
+		//animes := driver.H.UserAnimes(ChatID(m.Chat))
+		ma = kitsu.SearchAnime(m.Payload)
 
-	animesRows := make([]tb.Row, len(animes))
+		animesRows := make([]tb.Row, len(ma))
 
-	for i, anime := range animes {
-		animesRows[i] = tb.Row{inlaneAnimes.Data(anime.IdAnime, fmt.Sprint(i))}
+		for i, anime := range ma {
+			animesRows[i] = tb.Row{inlaneAnimes.Text(anime.Name)}
+		}
+		cid = chatID(m.Chat)
+		inlaneAnimes.Reply(animesRows...)
+		driver.TB.Send(m.Sender, "Animes", inlaneAnimes)
 	}
-
-	inlaneAnimes.Inline(animesRows...)
-	driver.TB.Send(m.Sender, "Animes", inlaneAnimes)
+	//driver.TB.Send(m.Sender, "test", replyer)
 }
 
-func (driver TheBot) Anime(m *tb.Message) {
-	if !m.Private() {
+func (driver TheBot) AddedList(m *tb.Message) {
+	myList := driver.H.UserAnimes(chatID(m.Chat))
+	var animes string
+	for _, item := range myList {
+		animes += "ID : [" + item.ID + "] " + item.Name + "\n"
+	}
+	driver.TB.Send(m.Sender, animes)
+}
+
+//command -ID -hour -weekday -remind (number or text)
+func (driver TheBot) ChangeRelease(m *tb.Message) {
+	remind := false
+	idDay := strings.Split(m.Payload, " ")
+	if len(idDay) != 4 {
+		driver.TB.Send(m.Sender, "The information is incomplete, I can't procede with the update")
 		return
 	}
-	driver.TB.Send(m.Sender, "Animes", inlaneAnime)
-}
-
-func (driver TheBot) AnimeMenu(c *tb.Callback) {
-	// ...
-	// Always respond!
-	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
-
-	//EDIT IS THE KEY TO CREATE MENUS
-	driver.TB.Edit(c.Message, "Here is the menu!", animeMenu)
-	//driver.TB.EditReplyMarkup(c.Message, inlaneOther)
-}
-
-func (driver TheBot) GoBackButton(c *tb.Callback) {
-	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
-
-	driver.TB.Edit(c.Message, "Animes", inlaneAnime)
-}
-
-func (driver TheBot) AddAnime(c *tb.Callback) {
-	driver.TB.Respond(c, &tb.CallbackResponse{ShowAlert: false})
-	driver.TB.Send(c.Sender, "Send the name of the anime")
-
-	chatID = ChatID(c.Message.Chat)
+	wd, err := strconv.ParseInt(idDay[2], 10, 8)
+	if err != nil {
+		log.Println(err, " Value out of range")
+		return
+	}
+	if idDay[3] == "T" {
+		remind = true
+	}
+	t, err := time.Parse(time.Kitchen, idDay[1])
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+		driver.TB.Send(m.Sender, "Please reachek the hour , shold be typed in this format00:00PM/AM")
+	} else if wd <= 0 || wd >= 8 {
+		driver.TB.Send(m.Sender, "Please reachek the day, choose in a range of 1 to 7 1 being monday")
+	} else {
+		driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), int8(wd), remind)
+	}
 }
 
 func (driver TheBot) TextFromChat(m *tb.Message) {
-	if chatID != "" {
+	if cid != "" {
+		fmt.Println(m.Text)
+		if name, ok := driver.findAnime(m.Text); ok {
+			driver.TB.Send(m.Sender, name+" was succesfully added")
+			cid = ""
+			return
+		} else {
+			driver.TB.Send(m.Sender, "Couldn't add  "+name)
+			cid = ""
+		}
 		//animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
-		driver.H.AssociateAnime(chatID, kitsu.SearchAnime(m.Text))
-		driver.SendUser(int(m.Chat.ID), m.Text+" Was Succesfully Added")
-		chatID = ""
-		return
 	}
 }
 
-func ChatID(chat *tb.Chat) (ci string) {
+func (driver TheBot) findAnime(message string) (name string, found bool) {
+	for _, anime := range ma {
+		if anime.Name == message {
+			name = anime.Name
+			found = driver.H.AssociateAnime(cid, anime)
+			return
+		}
+		name = anime.Name
+	}
+	return
+}
+
+func chatID(chat *tb.Chat) (ci string) {
 	byteC, err := json.Marshal(chat.ID)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -90,31 +131,3 @@ func ChatID(chat *tb.Chat) (ci string) {
 	ci = string(byteC)
 	return
 }
-
-func (driver TheBot) SendUser(chatId int, message string) {
-	user := &tb.User{ID: chatId}
-	driver.TB.Send(user, message)
-}
-
-////////////////////////
-
-// // Maybe will work for other things
-// func (driver TheBot) QueryKeyboard() {
-// 	var (
-// 		inlineKeyboard = &tb.ReplyMarkup{}
-
-// 		query     = inlineKeyboard.Query("hi", "")
-// 		queryChat = inlineKeyboard.QueryChat("bye", "")
-// 	)
-
-// 	inlineKeyboard.Inline(
-// 		inlineKeyboard.Row(query, queryChat),
-// 	)
-
-// 	driver.TB.Handle("/other", func(m *tb.Message) {
-// 		driver.TB.Send(m.Sender, "other", inlineKeyboard)
-// 	})
-// 	driver.TB.Handle(tb.OnQuery, func(q *tb.Query) {
-// 		log.Println(q.Text)
-// 	})
-// }

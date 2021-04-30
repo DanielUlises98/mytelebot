@@ -1,8 +1,6 @@
 package API
 
 import (
-	"log"
-
 	"github.com/DanielUlises98/mytelebot/models"
 	"gorm.io/gorm"
 )
@@ -21,13 +19,12 @@ func (driver DBClient) NewUser(username, chatId string) string {
 
 	user := models.User{
 		Username: username,
-		ChatId:   chatId,
+		ID:       chatId,
 	}
 
-	log.Println(driver.DB, "HI THERE")
 	userq := &models.User{}
-	driver.DB.Where("chat_id = ?", user.ChatId).First(&userq)
-	if !(user.ChatId == userq.ChatId) {
+	driver.DB.Where("id = ?", user.ID).First(&userq)
+	if !(user.ID == userq.ID) {
 		driver.DB.Create(&user)
 		return "Welcome"
 	} else {
@@ -37,31 +34,27 @@ func (driver DBClient) NewUser(username, chatId string) string {
 
 //AssociateAnime adds new animes to db and links them to a user
 //An associates existing animes to a user
-func (driver DBClient) AssociateAnime(ci string, anime models.Anime) {
+func (driver DBClient) AssociateAnime(ci string, anime models.Anime) bool {
 	user := &models.User{}
-	driver.DB.Where("chat_id = ?", ci).First(&user)
+	driver.DB.Where("id = ?", ci).First(&user)
 
 	animeF := &models.Anime{}
-	animesID := []string{anime.IdAnime}
+	animesID := []string{anime.ID}
 
-	tx := driver.DB.Where(anime).First(&animeF)
-	if tx.Error != nil {
+	tx := driver.DB.Where("id = ?", anime.ID).First(&animeF).Error
+	if tx != nil {
 		driver.DB.Model(&user).Association("Animes").Append(&anime)
-		return
+		return true
 	}
+
 	temp := animeF
 	animeF = &models.Anime{}
-	driver.DB.Model(&user).Where("id_anime IN ?", animesID).Association("Animes").Find(&animeF)
-	if animeF.IdAnime == "" {
-		//driver.DB.Model(&user).Association("Animes").Append(&temp)
-		//driver.DB.Model(&temp).Association("Users").Append(&user)
+	driver.DB.Model(&user).Where("id IN ?", animesID).Association("Animes").Find(&animeF)
+	if animeF.ID == "" {
 		driver.DB.Create(&models.UserAnimes{UserID: user.ID, AnimeID: temp.ID})
-		return
+		return true
 	}
-	//fmt.Printf("%+v\n", animeF)
-	// animeF = &models.Anime{}
-	// driver.DB.Model(&user).Where("id_anime IN ?", animesID).Association("Animes").Find(&animeF)
-	// driver.DB.Model(&user).Association("Animes").Append([]models.Anime{{IdAnime: "202022"}, {IdAnime: "52323"}})
+	return false
 }
 
 /*

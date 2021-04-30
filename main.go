@@ -8,15 +8,17 @@ import "github.com/DanielUlises98/mytelebot/tbBot"
 
 func main() {
 	tbBot.StartBot()
-	//api = API.DBClient{DB: models.InitDB()}
-	// bears(&Bear{})
-	// bears(&PolarBear{})
-	// t, err := time.Parse("2006-01-02", "2019-04-06")
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
-	// fmt.Printf("%+v\n", t)
-	// fmt.Printf("%+v\n", time.Now())
+	//t, _ := time.Parse(time.Kitchen, "1:46PM")
+
+	// t2 := time.Now().Add(time.Hour * 24)
+	// fmt.Println(t2.Clock())
+	// fmt.Println(time.Until(t2))
+	// timer := time.NewTimer(time.Until(t2))
+	// <-timer.C
+	// fmt.Println("Timer triggered")
+
+	//ticker := time.NewTicker(5 * time.Second)
+
 }
 
 /*
@@ -30,5 +32,4 @@ Make the api out of kitsyu
 
 1.-The list of animes will contain if is being published or has been finished
 2.-if the anime has alredy been finished, you can choose a day to be reminded
-
 */

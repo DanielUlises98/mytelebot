@@ -10,37 +10,36 @@ import (
 )
 
 type User struct {
-	ID        uint `gorm:"autoIncrement;primaryKey"`
+	ID        string `gorm:"primaryKey"`
 	Username  string
-	ChatId    string
 	Animes    []*Anime `gorm:"many2many:user_animes;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Anime struct {
-	ID             uint `gorm:"autoIncrement;primaryKey"`
+	ID             string `gorm:"primaryKey"`
 	Episodes       uint
 	CurrentEpisode uint
-	IdAnime        string
 	Name           string
 	ImageMedium    string
 	ImageOriginal  string
+	StartDate      string
+	EndDate        string
 	Status         bool
-	RemindUser     bool
-	StartDate      time.Time
-	EndDate        time.Time
 	CreatedAt      time.Time
 	DeletedAt      gorm.DeletedAt
 	User           []*User `gorm:"many2many:user_animes;"`
 }
 
 type UserAnimes struct {
-	ID        uint `gorm:"autoIncrement"`
-	UserID    uint `gorm:"foreignKey"`
-	AnimeID   uint `gorm:"foreignKey"`
-	CreatedAt time.Time
-	DeletedAt gorm.DeletedAt
+	UserID     string `gorm:"foreignKey"`
+	AnimeID    string `gorm:"foreignKey"`
+	HourRemind string
+	RemindUser bool `gorm:"default:false"`
+	WeekDay    int8
+	CreatedAt  time.Time
+	DeletedAt  gorm.DeletedAt
 }
 
 func InitDB() *gorm.DB {

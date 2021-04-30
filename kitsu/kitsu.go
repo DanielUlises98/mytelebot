@@ -60,12 +60,12 @@ func (A Anime) Attributes() Attributes {
 	return A.Attri
 }
 
-func SearchAnime(animeName string) (anime models.Anime) {
+func SearchAnime(animeName string) (anime []models.Anime) {
 
 	animeName = strings.Replace(animeName, " ", "%20", -1)
 
 	// I HAVE TO PUT BY HAND SPECIAL CHARACTERS IN ASCII code
-	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[subtype]=TV&filter[text]=" + animeName + "&page[limit]=1")
+	resp, err := http.Get("https://kitsu.io/api/edge/anime?filter[subtype]=TV&filter[text]=" + animeName)
 	if err != nil {
 		log.Fatal(err, "Couldn't reach the KITSU API")
 	}
@@ -106,37 +106,27 @@ const (
 	startDefaultEp = 1
 )
 
-func animeWrapper(dt *ArrayData) (anime models.Anime) {
-	anime = models.Anime{
-		Episodes:       uint(dt.Data[0].Attributes().EpisodeCount),
-		IdAnime:        dt.Data[0].AnimeID(),
-		Name:           dt.Data[0].Attributes().Titles.EnJp,
-		ImageMedium:    dt.Data[0].Attributes().PosterImage.Medium,
-		ImageOriginal:  dt.Data[0].Attributes().PosterImage.Original,
-		Status:         isStatus(dt.Data[0].Attributes().Status),
-		StartDate:      parseDate(dt.Data[0].Attributes().StartDate),
-		EndDate:        parseDate(dt.Data[0].Attributes().EndDate),
-		CurrentEpisode: startDefaultEp,
-		RemindUser:     true,
-		CreatedAt:      time.Now(),
+func animeWrapper(dt *ArrayData) (anime []models.Anime) {
+	anime = make([]models.Anime, len(dt.Data))
+	for i, v := range dt.Data {
+		anime[i] = models.Anime{
+			Episodes:       uint(v.Attributes().EpisodeCount),
+			ID:             v.AnimeID(),
+			Name:           v.Attributes().Titles.EnJp,
+			ImageMedium:    v.Attributes().PosterImage.Medium,
+			ImageOriginal:  v.Attributes().PosterImage.Original,
+			Status:         isStatus(v.Attributes().Status),
+			StartDate:      v.Attributes().StartDate,
+			EndDate:        v.Attributes().EndDate,
+			CurrentEpisode: startDefaultEp,
+			CreatedAt:      time.Now(),
+		}
 	}
-	log.Println(anime)
 	return
 }
 
 func isStatus(status string) bool {
 	return status == "current"
-}
-
-func parseDate(date string) (dt time.Time) {
-	if date == "" {
-		return time.Time{}
-	}
-	t, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		log.Fatal(err.Error(), " Couldn't convert: ", date, " to time")
-	}
-	return t
 }
 
 // var prettyJSON bytes.Buffer

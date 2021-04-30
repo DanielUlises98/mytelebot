@@ -1,24 +1,21 @@
 package main
 
-import "github.com/DanielUlises98/mytelebot/tbBot"
+import (
+	"github.com/DanielUlises98/mytelebot/models"
+	"github.com/DanielUlises98/mytelebot/reminder"
+	tbbot "github.com/DanielUlises98/mytelebot/tbBot"
+)
 
 // var (
 // 	api API.DBClient
 // )
 
 func main() {
-	tbBot.StartBot()
-	//t, _ := time.Parse(time.Kitchen, "1:46PM")
-
-	// t2 := time.Now().Add(time.Hour * 24)
-	// fmt.Println(t2.Clock())
-	// fmt.Println(time.Until(t2))
-	// timer := time.NewTimer(time.Until(t2))
-	// <-timer.C
-	// fmt.Println("Timer triggered")
-
-	//ticker := time.NewTicker(5 * time.Second)
-
+	db := models.InitDB()
+	bot := tbbot.StartBot()
+	tbbot.InitHandlers(db, bot)
+	reminder.Init(db, bot)
+	bot.Start()
 }
 
 /*

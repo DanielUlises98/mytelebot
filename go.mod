@@ -1,5 +1,6 @@
 module github.com/DanielUlises98/mytelebot
 
+
 go 1.16
 
 require (

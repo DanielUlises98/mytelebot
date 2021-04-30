@@ -11,8 +11,22 @@ func (driver DBClient) UserAnimes(ci string) (animes []models.Anime) {
 	driver.DB.Model(&user).Association("Animes").Find(&animes)
 	return
 }
-func (driver DBClient) Hours() []models.UserAnimes {
-	ua := &[]models.UserAnimes{}
-	driver.DB.Where("remind_user = ?", true).Find(&ua)
-	return *ua
+
+type InnerUA struct {
+	UserID     string
+	HourRemind string
+	WeekDay    string
+	Name       string
+}
+
+func (driver DBClient) Hours() []InnerUA {
+	//ua := &[]models.UserAnimes{}
+	result := &[]InnerUA{}
+	//driver.DB.Where("remind_user = ?", true).Find(&ua)
+	driver.DB.Model(&models.UserAnimes{}).
+		Select("user_animes.user_id, user_animes.hour_remind, user_animes.week_day, animes.name").
+		Where("remind_user = ?", true).
+		Joins("left join animes on animes.id = user_animes.anime_id").
+		Scan(&result)
+	return *result
 }

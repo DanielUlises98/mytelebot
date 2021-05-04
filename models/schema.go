@@ -1,10 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/DanielUlises98/mytelebot/KEYS"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -42,9 +43,8 @@ type UserAnimes struct {
 	DeletedAt  gorm.DeletedAt
 }
 
-func InitDB() *gorm.DB {
+func InitDB(dsn string) *gorm.DB {
 
-	dsn := KEYS.DSN
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err.Error(), "Un error al conectar con la base de datos")
@@ -63,4 +63,17 @@ func InitDB() *gorm.DB {
 	}
 	db.AutoMigrate(&User{})
 	return db
+}
+
+func UrlToDsn(url string) string {
+	character := []string{":", "@", ":", "/"}
+	dsn := make([]string, 5)
+	url = url[11:]
+	for i, item := range character {
+		p := strings.Index(url, item)
+		dsn[i] = url[0:p]
+		url = url[p+1:]
+	}
+	dsn[4] = url
+	return fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s", dsn[0], dsn[1], dsn[2], dsn[3], dsn[4], "require")
 }

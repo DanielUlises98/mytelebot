@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/DanielUlises98/mytelebot/API"
-	"github.com/DanielUlises98/mytelebot/KEYS"
 	"github.com/DanielUlises98/mytelebot/kitsu"
 	"github.com/DanielUlises98/mytelebot/models"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -26,9 +25,9 @@ type TheBot struct {
 	H  API.DBClient
 }
 
-func StartBot() *tb.Bot {
+func StartBot(token string) *tb.Bot {
 	b, err := tb.NewBot(tb.Settings{
-		Token:  KEYS.TELEBOT_KEY,
+		Token:  token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 	if err != nil {

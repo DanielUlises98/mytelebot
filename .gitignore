@@ -1,1 +1,4 @@
-KEYS.*
+KEYS/
+bin/
+.ENV
+Procfile

@@ -29,14 +29,14 @@ func Init() {
 	}
 	dsn = os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = os.Getenv("DSN")
+		dsn = os.Getenv("LOCAL_DSN")
 	} else {
 		dsn = models.UrlToDsn(dsn)
 	}
 }
 
 func main() {
-
+	Init()
 	db := models.InitDB(dsn)
 	bot := tbBot.StartBot(token, port, publicUrl)
 	tbBot.InitHandlers(db, bot)

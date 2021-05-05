@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/DanielUlises98/mytelebot/KEYS"
 	"github.com/DanielUlises98/mytelebot/models"
 	"github.com/DanielUlises98/mytelebot/reminder"
 	"github.com/DanielUlises98/mytelebot/tbBot"
+	"github.com/joho/godotenv"
 )
 
 // var (
@@ -15,14 +16,19 @@ import (
 // )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	token := os.Getenv("TOKEN")
 	if token == "" {
-		token = KEYS.TELEBOT_KEY
+		log.Fatal("Error when loading the telegram token")
 	}
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = KEYS.DSN
+		dsn = os.Getenv("DSN")
 	} else {
 		dsn = models.UrlToDsn(dsn)
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -18,14 +17,16 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
+	port := os.Getenv("PORT")
+	publicUrl := os.Getenv("PUBLIC_URL")
 	token := os.Getenv("TOKEN")
+
 	if token == "" {
 		log.Fatal("Error when loading the telegram token")
 	}
-
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		dsn = os.Getenv("DSN")
@@ -34,10 +35,9 @@ func main() {
 	}
 
 	db := models.InitDB(dsn)
-	bot := tbBot.StartBot(token)
+	bot := tbBot.StartBot(token, port, publicUrl)
 	tbBot.InitHandlers(db, bot)
 	reminder.Init(db, bot)
-	fmt.Println("Starting bot")
 	bot.Start()
 	//urlToDsn("postgres://cfercjojdpxdbn:a1bc0cc912b0c9652a0a4c3969dbd6873c0fb8ecc6c456f95da4963daee88fdd@ec2-52-87-107-83.compute-1.amazonaws.com:5432/dl0llkn4jk1ki")
 }

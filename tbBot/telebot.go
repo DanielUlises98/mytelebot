@@ -25,14 +25,23 @@ type TheBot struct {
 	H  API.DBClient
 }
 
-func StartBot(token string) *tb.Bot {
-	b, err := tb.NewBot(tb.Settings{
-		Token:  token,
-		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
-	})
+func StartBot(token string, port string, publicUrl string) *tb.Bot {
+	fmt.Println("Starting bot")
+	webhook := &tb.Webhook{
+		Listen:   ":" + port,
+		Endpoint: &tb.WebhookEndpoint{PublicURL: publicUrl},
+	}
+	pref := tb.Settings{
+		Verbose: true,
+		Token:   token,
+		Poller:  webhook,
+	}
+
+	b, err := tb.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Setup finished")
 	return b
 }
 

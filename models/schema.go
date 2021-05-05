@@ -44,7 +44,7 @@ type UserAnimes struct {
 }
 
 func InitDB(dsn string) *gorm.DB {
-
+	fmt.Println("Setting up database")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err.Error(), "Un error al conectar con la base de datos")
@@ -62,6 +62,7 @@ func InitDB(dsn string) *gorm.DB {
 		log.Fatal(err.Error())
 	}
 	db.AutoMigrate(&User{})
+	fmt.Println("Finished setting up the database")
 	return db
 }
 

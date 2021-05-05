@@ -52,6 +52,7 @@ func InitHandlers(db *gorm.DB, b *tb.Bot) {
 	bot.TB.Handle("/add", bot.SearchResult)
 	bot.TB.Handle("/list", bot.AddedList)
 	bot.TB.Handle("/cr", bot.ChangeRelease)
+	bot.TB.Handle("/commands", bot.DisplayCommands)
 
 	//bot.TB.Handle(&addAnime, bot.AddAnime)
 
@@ -148,7 +149,15 @@ func (driver TheBot) ChangeRelease(m *tb.Message) {
 	driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), time.Weekday(wd).String(), remind)
 
 }
-
+func (driver TheBot) DisplayCommands(m *tb.Message) {
+	driver.TB.Send(m.Sender, "Commands\n"+
+		"/start - to be able to use the commands.\n"+
+		"/add [message] - To add an anime of your choice Example: /add One piece.\n"+
+		"/list - shows a list of the animes you have with their Id’s.\n"+
+		"/cr - it sets and modifies the Hour and Day of the week the bot will send you a notification of your anime as a reminder [/cr id hour weekday remind]\n"+
+		"Example: You want to be reminded to watch One Piece monday at 5:00 PM use the command /cr 12 5:00PM 0 T\n"+
+		"The days for the week can be choose in a range of 0-6 0 being monda")
+}
 func (driver TheBot) TextFromChat(m *tb.Message) {
 	if cid != "" {
 		fmt.Println(m.Text)

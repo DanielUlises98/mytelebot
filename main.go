@@ -34,7 +34,6 @@ func main() {
 	}
 
 	db := models.InitDB(dsn)
-	fmt.Println("Heroku")
 	bot := tbBot.StartBot(token)
 	tbBot.InitHandlers(db, bot)
 	reminder.Init(db, bot)

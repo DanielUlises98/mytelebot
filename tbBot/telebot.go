@@ -27,20 +27,31 @@ type TheBot struct {
 
 func StartBot(token string, port string, publicUrl string) *tb.Bot {
 	fmt.Println("Starting bot")
-	webhook := &tb.Webhook{
-		Listen:   ":" + port,
-		Endpoint: &tb.WebhookEndpoint{PublicURL: publicUrl},
-	}
-	pref := tb.Settings{
-		Verbose: true,
-		Token:   token,
-		Poller:  webhook,
+	fmt.Println(publicUrl)
+	pref := tb.Settings{}
+	if publicUrl != "" {
+		webhook := &tb.Webhook{
+			Listen:   ":" + port,
+			Endpoint: &tb.WebhookEndpoint{PublicURL: publicUrl},
+		}
+		pref = tb.Settings{
+			Verbose: true,
+			Token:   token,
+			Poller:  webhook,
+		}
+	} else {
+		pref = tb.Settings{Token: token,
+			Poller: &tb.LongPoller{Timeout: 10 * time.Second}}
 	}
 
 	b, err := tb.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if publicUrl == "" {
+		b.RemoveWebhook()
+	}
+
 	fmt.Println("Setup finished")
 	return b
 }
@@ -79,6 +90,9 @@ func (driver TheBot) Start(m *tb.Message) {
 
 	result := driver.H.NewUser(string(username), string(chatId))
 	driver.TB.Send(m.Sender, result)
+	r := &tb.ReplyMarkup{}
+	r.Location("Send your location")
+	driver.TB.Send(m.Sender, r)
 }
 
 func (driver TheBot) SearchResult(m *tb.Message) {

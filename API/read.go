@@ -30,3 +30,11 @@ func (driver DBClient) Hours(weekday string) []InnerUA {
 		Scan(&result)
 	return *result
 }
+func (driver DBClient) UserTz(ui string) (bool, string) {
+	u := &models.User{}
+	driver.DB.Where("id = ?", ui).First(&u)
+	if u.TimeZone == "" {
+		return false, ""
+	}
+	return true, u.TimeZone
+}

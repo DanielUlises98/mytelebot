@@ -11,6 +11,7 @@ import (
 	"github.com/DanielUlises98/mytelebot/API"
 	"github.com/DanielUlises98/mytelebot/kitsu"
 	"github.com/DanielUlises98/mytelebot/models"
+	"github.com/DanielUlises98/mytelebot/timezone"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"gorm.io/gorm"
 )
@@ -63,6 +64,8 @@ func InitHandlers(db *gorm.DB, b *tb.Bot) {
 	bot.TB.Handle("/add", bot.SearchResult)
 	bot.TB.Handle("/list", bot.AddedList)
 	bot.TB.Handle("/cr", bot.ChangeRelease)
+	bot.TB.Handle("/tzlist", bot.listOfTz)
+	bot.TB.Handle("/setz", bot.pickedTz)
 	bot.TB.Handle("/commands", bot.DisplayCommands)
 
 	//bot.TB.Handle(&addAnime, bot.AddAnime)
@@ -72,7 +75,6 @@ func InitHandlers(db *gorm.DB, b *tb.Bot) {
 	//bot.QueryKeyboard()
 	// Start the bot at the end
 }
-
 func (driver TheBot) Start(m *tb.Message) {
 	if !m.Private() {
 		return
@@ -87,12 +89,9 @@ func (driver TheBot) Start(m *tb.Message) {
 	if err != nil {
 		log.Fatal(err, "there is something wrong with marshal of chatid ")
 	}
-
 	result := driver.H.NewUser(string(username), string(chatId))
 	driver.TB.Send(m.Sender, result)
-	r := &tb.ReplyMarkup{}
-	r.Location("Send your location")
-	driver.TB.Send(m.Sender, r)
+	driver.TB.Send(m.Sender, "Remember to setup your timezone")
 }
 
 func (driver TheBot) SearchResult(m *tb.Message) {
@@ -129,6 +128,10 @@ func (driver TheBot) AddedList(m *tb.Message) {
 
 //command -ID -hour -weekday -remind (number or text)
 func (driver TheBot) ChangeRelease(m *tb.Message) {
+	if ok, _ := driver.H.UserTz(chatID(m.Chat)); !ok {
+		driver.TB.Send(m.Sender, "You have to setup your timezone first, so you are able to use this command")
+		return
+	}
 	var remind bool
 	idDay := strings.Split(m.Payload, " ")
 	if len(idDay) != 4 {
@@ -163,6 +166,21 @@ func (driver TheBot) ChangeRelease(m *tb.Message) {
 	driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), time.Weekday(wd).String(), remind)
 
 }
+func (driver TheBot) listOfTz(m *tb.Message) {
+	driver.TB.Send(m.Sender, tz())
+}
+
+func (driver TheBot) pickedTz(m *tb.Message) {
+	n, err := strconv.Atoi(m.Payload)
+	if err != nil {
+		driver.TB.Send(m.Sender, m.Payload+" is not a valid number please send a valid number from the list \n"+tz())
+		return
+	}
+	tz := timezone.TimeZone(n)
+	driver.H.UpdateTz(chatID(m.Chat), tz)
+	driver.TB.Send(m.Sender, "TimeZone "+tz+" was succesfully setted")
+}
+
 func (driver TheBot) DisplayCommands(m *tb.Message) {
 	driver.TB.Send(m.Sender, "Commands\n"+
 		"/start - to be able to use the commands.\n"+
@@ -170,7 +188,9 @@ func (driver TheBot) DisplayCommands(m *tb.Message) {
 		"/list - shows a list of the animes you have with their Id’s.\n"+
 		"/cr - it sets and modifies the Hour and Day of the week the bot will send you a notification of your anime as a reminder [/cr id hour weekday remind]\n"+
 		"Example: You want to be reminded to watch One Piece monday at 5:00 PM use the command /cr 12 5:00PM 0 T\n"+
-		"The days for the week can be choose in a range of 0-6 0 being monda")
+		"The days for the week can be choose in a range of 0-6 0 being monda\n"+
+		"/tzlist - shows a list of the current timezones\n"+
+		"/setz - sets the timezone, choose the number of the list of your timezone")
 }
 func (driver TheBot) TextFromChat(m *tb.Message) {
 	if cid != "" {
@@ -214,5 +234,12 @@ func chatID(chat *tb.Chat) (ci string) {
 		log.Fatal(err.Error())
 	}
 	ci = string(byteC)
+	return
+}
+func tz() (s string) {
+	s = "List of TimeZones \n"
+	for i, tz := range timezone.ListAbbrs() {
+		s += fmt.Sprint(i+1) + ": " + tz + "\n"
+	}
 	return
 }

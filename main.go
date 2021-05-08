@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/DanielUlises98/mytelebot/models"
-	"github.com/DanielUlises98/mytelebot/reminder"
-	"github.com/DanielUlises98/mytelebot/tbBot"
 	"github.com/joho/godotenv"
 )
 
@@ -14,7 +14,7 @@ var (
 	port, publicUrl, token, dsn string
 )
 
-func Init() {
+func InitEnv() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Error loading .env file")
@@ -36,12 +36,17 @@ func Init() {
 }
 
 func main() {
-	Init()
-	db := models.InitDB(dsn)
-	bot := tbBot.StartBot(token, port, publicUrl)
-	tbBot.InitHandlers(db, bot)
-	reminder.Init(db, bot)
-	bot.Start()
+	// InitEnv()
+	// db := models.InitDB(dsn)
+	// bot := tbBot.StartBot(token, port, publicUrl)
+	// tbBot.InitHandlers(db, bot)
+	// reminder.Init(db, bot)
+	// bot.Start()
+
+	fmt.Println(time.Now())
+	laod, _ := time.LoadLocation("America/New_York")
+	fmt.Println(time.Now().In(laod))
+	
 }
 
 /*

@@ -14,6 +14,7 @@ type User struct {
 	ID        string `gorm:"primaryKey"`
 	Username  string
 	Animes    []*Anime `gorm:"many2many:user_animes;"`
+	TimeZone  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

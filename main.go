@@ -42,11 +42,9 @@ func main() {
 	// tbBot.InitHandlers(db, bot)
 	// reminder.Init(db, bot)
 	// bot.Start()
-
+	// PARSE TIMEZONE TO UTC TIME AN WORK ON THAT
 	fmt.Println(time.Now())
-	laod, _ := time.LoadLocation("America/New_York")
-	fmt.Println(time.Now().In(laod))
-	
+	fmt.Println(time.Now().UTC())
 }
 
 /*

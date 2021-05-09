@@ -1,7 +1,8 @@
 package reminder
 
 import (
-	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/DanielUlises98/mytelebot/API"
@@ -25,45 +26,58 @@ type BotDB struct {
 var (
 	//wg       sync.WaitGroup
 	lenTimes int
-	ua       []API.InnerUA
+	ua       []API.UserTZData
+	logger   *log.Logger
 )
 
 func (driver BotDB) setUpReminder() {
-	weekday := time.Now().Weekday().String()
+	logger.Printf("Initiating the reminder proces\n")
+	weekday := time.Now().UTC().Weekday().String()
 	ua = driver.bot.H.Hours(weekday)
 	lenTimes = len(ua)
 	driver.setWorkers(setTimers(gatherHr(ua)), ua)
 }
 
-func gatherHr(ua []API.InnerUA) []time.Time {
+func gatherHr(ua []API.UserTZData) []time.Time {
 	ts := make([]time.Time, lenTimes)
-	now := time.Now()
 	for i, item := range ua {
+		load, err := time.LoadLocation(item.TimeZone)
+		if err != nil {
+			log.Println(err, "error when loading a location")
+		}
+		nowCurrent := time.Now().In(load)
+		//now := time.Now()
 		t, err := time.Parse(time.Kitchen, item.HourRemind)
 		if err != nil {
-			fmt.Println(err)
+			logger.Println(err)
 		}
-		t = time.Date(now.Year(), now.Month(), now.Day(), t.Hour(), t.Minute(), 0, 0, now.Location())
+		t = time.Date(nowCurrent.Year(), nowCurrent.Month(), nowCurrent.Day(), t.Hour(), t.Minute(), 0, 0, load)
 		ts[i] = t
 	}
 	return ts
-	//fmt.Println(time.Until(t))
+	//logger.Println(time.Until(t))
 }
 
 func setTimers(t []time.Time) []TimeChan {
+	logger.Printf("Setting timers for the reminders\n")
 	tr := make([]TimeChan, lenTimes)
+	utc := time.Now().UTC()
 	for i := range t {
-		tr[i].t = time.NewTimer(time.Until(t[i]))
+		//tr[i].t = time.NewTimer(time.Until(t[i]))
+		tr[i].t = time.NewTimer(t[i].Sub(utc))
 	}
 	return tr
 }
 
-func (driver BotDB) setWorkers(tr []TimeChan, ua []API.InnerUA) {
+func (driver BotDB) setWorkers(tr []TimeChan, ua []API.UserTZData) {
 	//wg.Add(lenTimes)
+	logger.Printf("Setting reminders\n")
 	for i := range tr {
 		go func(t *time.Timer, userId, name string) {
+			logger.Printf("Will remind %s the anime %s\n", userId, name)
 			<-t.C
 			driver.bot.SendUser(userId, name)
+			logger.Printf("%s Reminded", userId)
 			//		wg.Done()
 		}(tr[i].t, ua[i].UserID, ua[i].Name)
 	}
@@ -71,16 +85,17 @@ func (driver BotDB) setWorkers(tr []TimeChan, ua []API.InnerUA) {
 }
 
 func getNextDuration() time.Duration {
-	now := time.Now()
-	next := time.Date(now.Year(), now.Month(), now.Day(), HOUR_TO_FETCH, MIN_TO_FETCH, SEC_TO_FETCH, 0, now.Location())
-	if next.Before(now) {
+	nowUtc := time.Now().UTC()
+	next := time.Date(nowUtc.Year(), nowUtc.Month(), nowUtc.Day(), HOUR_TO_FETCH, MIN_TO_FETCH, SEC_TO_FETCH, 0, nowUtc.Location())
+	if next.Before(nowUtc) {
 		next = next.Add(INTERVAL)
 	}
-	fmt.Println(time.Until(next), " Is going to start the timers")
-	return time.Until(next)
+	logger.Printf("Current utc time %s \n", nowUtc)
+	logger.Printf("%s It is going to start the timers \n", next.Sub(nowUtc))
+	return next.Sub(nowUtc)
 }
 func newJobTimer() TimeChan {
-	fmt.Println("New timer")
+	logger.Printf("Starting the Timer for the reminders\n")
 	return TimeChan{time.NewTimer(getNextDuration())}
 }
 func (j TimeChan) updateJobTimer() {
@@ -91,12 +106,13 @@ func (driver BotDB) StartReminder() {
 	jt := newJobTimer()
 	for {
 		<-jt.t.C
-		fmt.Println(time.Now(), "- JUST TICKED")
+		logger.Printf("%s - JUST TICKED\n", time.Now().UTC())
 		driver.setUpReminder()
 		jt.updateJobTimer()
 	}
 }
 func Init(db *gorm.DB, bot *tb.Bot) {
+	logger = log.New(os.Stdout, "", 0)
 	bDB := BotDB{bot: tbBot.TheBot{TB: bot, H: API.DBClient{DB: db}}}
 	go bDB.StartReminder()
 }

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/DanielUlises98/mytelebot/models"
+	"github.com/DanielUlises98/mytelebot/reminder"
+	"github.com/DanielUlises98/mytelebot/tbBot"
 	"github.com/joho/godotenv"
 )
 
@@ -36,15 +36,13 @@ func InitEnv() {
 }
 
 func main() {
-	// InitEnv()
-	// db := models.InitDB(dsn)
-	// bot := tbBot.StartBot(token, port, publicUrl)
-	// tbBot.InitHandlers(db, bot)
-	// reminder.Init(db, bot)
-	// bot.Start()
+	InitEnv()
+	db := models.InitDB(dsn)
+	bot := tbBot.StartBot(token, port, publicUrl)
+	tbBot.InitHandlers(db, bot)
+	reminder.Init(db, bot)
+	bot.Start()
 	// PARSE TIMEZONE TO UTC TIME AN WORK ON THAT
-	fmt.Println(time.Now())
-	fmt.Println(time.Now().UTC())
 }
 
 /*

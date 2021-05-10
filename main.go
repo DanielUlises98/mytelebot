@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/DanielUlises98/mytelebot/models"
-	"github.com/DanielUlises98/mytelebot/reminder"
-	"github.com/DanielUlises98/mytelebot/tbBot"
 	"github.com/joho/godotenv"
 )
 
@@ -36,13 +36,20 @@ func InitEnv() {
 }
 
 func main() {
-	InitEnv()
-	db := models.InitDB(dsn)
-	bot := tbBot.StartBot(token, port, publicUrl)
-	tbBot.InitHandlers(db, bot)
-	reminder.Init(db, bot)
-	bot.Start()
+	// InitEnv()
+	// db := models.InitDB(dsn)
+	// bot := tbBot.StartBot(token, port, publicUrl)
+	// tbBot.InitHandlers(db, bot)
+	// reminder.Init(db, bot)
+	// bot.Start()
 	// PARSE TIMEZONE TO UTC TIME AN WORK ON THAT
+	load, _ := time.LoadLocation("America/Mexico_City")
+	nowCurrent := time.Now().In(load)
+	weekday := nowCurrent.Weekday()
+	fmt.Println(weekday)
+	t := time.Date(nowCurrent.Year(), nowCurrent.Month(), nowCurrent.Day()+6-1, 17, 30, 0, 0, load)
+	fmt.Println(t)
+	fmt.Println(nowCurrent.Sub(t))
 }
 
 /*

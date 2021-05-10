@@ -20,14 +20,15 @@ type UserTZData struct {
 	Name       string
 }
 
-func (driver DBClient) Hours(weekday string) []UserTZData {
+func (driver DBClient) Hours() []UserTZData {
 	//ua := &[]models.UserAnimes{}
 	result := &[]UserTZData{}
 	//driver.DB.Where("remind_user = ?", true).Find(&ua)
 	driver.DB.Model(&models.UserAnimes{}).
-		Select("user_animes.user_id, user_animes.hour_remind, user_animes.week_day, user.time_zone, animes.name").
-		Where("remind_user = ? AND week_day = ?", true, weekday).
+		Select("user_animes.user_id, user_animes.hour_remind, user_animes.week_day, users.time_zone, animes.name").
+		Where("remind_user = ?", true).
 		Joins("left join animes on animes.id = user_animes.anime_id").
+		Joins("left join users on users.id = user_animes.user_id").
 		Scan(&result)
 	return *result
 }

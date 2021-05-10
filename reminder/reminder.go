@@ -12,8 +12,8 @@ import (
 )
 
 const INTERVAL = time.Hour * 24
-const HOUR_TO_FETCH = 00
-const MIN_TO_FETCH = 01
+const HOUR_TO_FETCH = 03
+const MIN_TO_FETCH = 26
 const SEC_TO_FETCH = 00
 
 type TimeChan struct {
@@ -21,6 +21,10 @@ type TimeChan struct {
 }
 type BotDB struct {
 	bot tbBot.TheBot
+}
+type timesZones struct {
+	time     time.Time
+	timeZone time.Time
 }
 
 var (
@@ -32,14 +36,14 @@ var (
 
 func (driver BotDB) setUpReminder() {
 	logger.Printf("Initiating the reminder proces\n")
-	weekday := time.Now().UTC().Weekday().String()
-	ua = driver.bot.H.Hours(weekday)
+	ua = driver.bot.H.Hours()
 	lenTimes = len(ua)
 	driver.setWorkers(setTimers(gatherHr(ua)), ua)
 }
 
-func gatherHr(ua []API.UserTZData) []time.Time {
-	ts := make([]time.Time, lenTimes)
+func gatherHr(ua []API.UserTZData) []timesZones {
+	//ts := make([]time.Time, lenTimes)
+	tz := make([]timesZones, lenTimes)
 	for i, item := range ua {
 		load, err := time.LoadLocation(item.TimeZone)
 		if err != nil {
@@ -52,19 +56,21 @@ func gatherHr(ua []API.UserTZData) []time.Time {
 			logger.Println(err)
 		}
 		t = time.Date(nowCurrent.Year(), nowCurrent.Month(), nowCurrent.Day(), t.Hour(), t.Minute(), 0, 0, load)
-		ts[i] = t
+		if t.Sub(nowCurrent) < time.Duration(time.Hour*24) && nowCurrent.Weekday().String() == item.WeekDay {
+			tz[i].time = t
+			tz[i].timeZone = nowCurrent
+		}
 	}
-	return ts
+	return tz
 	//logger.Println(time.Until(t))
 }
 
-func setTimers(t []time.Time) []TimeChan {
+func setTimers(tz []timesZones) []TimeChan {
 	logger.Printf("Setting timers for the reminders\n")
 	tr := make([]TimeChan, lenTimes)
-	utc := time.Now().UTC()
-	for i := range t {
+	for i := range tz {
 		//tr[i].t = time.NewTimer(time.Until(t[i]))
-		tr[i].t = time.NewTimer(t[i].Sub(utc))
+		tr[i].t = time.NewTimer(tz[i].time.Sub(tz[i].timeZone))
 	}
 	return tr
 }

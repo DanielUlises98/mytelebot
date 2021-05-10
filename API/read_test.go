@@ -1,7 +1,10 @@
 package API
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/DanielUlises98/mytelebot/models"
 )
 
 var (
@@ -9,6 +12,6 @@ var (
 )
 
 func TestHours(t *testing.T) {
-	//H.DB = models.InitDB(KEYS.DSN)
-	//fmt.Println(H.Hours(), len(H.Hours()))
+	H.DB = models.InitDB("host=localhost user=duckes password=123456 dbname=mydb port=5432 sslmode=disable")
+	fmt.Println(H.Hours(), len(H.Hours()))
 }

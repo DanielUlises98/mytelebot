@@ -66,7 +66,7 @@ func InitHandlers(db *gorm.DB, b *tb.Bot) {
 	bot.TB.Handle("/cr", bot.ChangeRelease)
 	bot.TB.Handle("/tzlist", bot.listOfTz)
 	bot.TB.Handle("/setz", bot.pickedTz)
-	bot.TB.Handle("/commands", bot.DisplayCommands)
+	bot.TB.Handle("/help", bot.DisplayCommands)
 
 	//bot.TB.Handle(&addAnime, bot.AddAnime)
 
@@ -91,7 +91,7 @@ func (driver TheBot) Start(m *tb.Message) {
 	}
 	result := driver.H.NewUser(string(username), string(chatId))
 	driver.TB.Send(m.Sender, result)
-	driver.TB.Send(m.Sender, "Remember to setup your timezone")
+	driver.TB.Send(m.Sender, "Remember to setup your timezone ,\n you can do it with the command /cr look it out in /help for more info")
 }
 
 func (driver TheBot) SearchResult(m *tb.Message) {
@@ -126,7 +126,7 @@ func (driver TheBot) AddedList(m *tb.Message) {
 	driver.TB.Send(m.Sender, animes)
 }
 
-//command -ID -hour -weekday -remind (number or text)
+//command /cr -ID -hour -weekday -remind (number or text)
 func (driver TheBot) ChangeRelease(m *tb.Message) {
 	if ok, _ := driver.H.UserTz(chatID(m.Chat)); !ok {
 		driver.TB.Send(m.Sender, "You have to setup your timezone first, so you are able to use this command")
@@ -142,6 +142,9 @@ func (driver TheBot) ChangeRelease(m *tb.Message) {
 	if err != nil {
 		log.Println(err, " Value out of range")
 		return
+	} else if wd <= -1 || wd >= 7 {
+		driver.TB.Send(m.Sender, "Please reachek the day, choose in a range of 0 to 6 0 being Sunday")
+		return
 	}
 
 	isRemind := strings.ToUpper(idDay[3])
@@ -153,18 +156,17 @@ func (driver TheBot) ChangeRelease(m *tb.Message) {
 		driver.TB.Send(m.Sender, "Couldn't determine if it was true or false, so it was set to false")
 		remind = false
 	}
-
-	t, err := time.Parse(time.Kitchen, idDay[1])
+	hr, err := strconv.Atoi(idDay[1])
 	if err != nil {
 		fmt.Printf("%+v\n", err)
-		driver.TB.Send(m.Sender, "Please reachek the hour , shold be typed in this format00:00PM/AM")
+		driver.TB.Send(m.Sender, "Please reachek the hour , shold be typed in this format 00 to 23")
 		return
-	} else if wd <= -1 || wd >= 7 {
-		driver.TB.Send(m.Sender, "Please reachek the day, choose in a range of 0 to 6 0 being Sunday")
-		return
+	} else if hr < 0 || hr > 23 {
+		driver.TB.Send(m.Sender, "The hour can't exid the 23 hour format or be las than 0")
 	}
-	driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], t.Format(time.Kitchen), time.Weekday(wd).String(), remind)
 
+	driver.H.UpdateWeekday(chatID(m.Chat), idDay[0], hr, time.Weekday(wd).String(), remind)
+	driver.TB.Send(m.Sender, "Success")
 }
 func (driver TheBot) listOfTz(m *tb.Message) {
 	driver.TB.Send(m.Sender, tz())
@@ -178,7 +180,7 @@ func (driver TheBot) pickedTz(m *tb.Message) {
 	}
 	tz := timezone.TimeZone(n)
 	driver.H.UpdateTz(chatID(m.Chat), tz)
-	driver.TB.Send(m.Sender, "TimeZone "+tz+" was succesfully setted")
+	driver.TB.Send(m.Sender, "TimeZone "+tz+" was succesfully setted to your acount")
 }
 
 func (driver TheBot) DisplayCommands(m *tb.Message) {
@@ -187,10 +189,11 @@ func (driver TheBot) DisplayCommands(m *tb.Message) {
 		"/add [message] - To add an anime of your choice Example: /add One piece.\n"+
 		"/list - shows a list of the animes you have with their Id’s.\n"+
 		"/cr - it sets and modifies the Hour and Day of the week the bot will send you a notification of your anime as a reminder [/cr id hour weekday remind]\n"+
-		"Example: You want to be reminded to watch One Piece monday at 5:00 PM use the command /cr 12 5:00PM 0 T\n"+
-		"The days for the week can be choose in a range of 0-6 0 being monda\n"+
+		"Example: You want to be reminded to watch One Piece on Monday at 5 use the command /cr 12 5 1 T\n"+
+		"The days for the week can be choose in a range of 0-6 0 being sunday and 6 saturday\n"+
 		"/tzlist - shows a list of the current timezones\n"+
-		"/setz - sets the timezone, choose the number of the list of your timezone")
+		"/setz - sets the timezone, choose the number of the list of your timezone\n"+
+		"/help -  shows a list of the available commands with their descrption")
 }
 func (driver TheBot) TextFromChat(m *tb.Message) {
 	if cid != "" {
@@ -204,6 +207,9 @@ func (driver TheBot) TextFromChat(m *tb.Message) {
 			cid = ""
 		}
 		//animeID := models.Anime{IdAnime: kitsu.SearchAnime(m.Text)}
+	}
+	if !(driver.H.UserExist(chatID(m.Chat))) {
+		driver.TB.Send(m.Sender, "Please use the command /start so you can use the rest of the commands")
 	}
 }
 
@@ -219,14 +225,14 @@ func (driver TheBot) findAnime(message string) (name string, found bool) {
 	return
 }
 
-func (driver TheBot) SendUser(userid string, name string) {
+func (driver TheBot) SendUser(userid string, name string, time string) {
 	ui, err := strconv.ParseInt(userid, 10, 64)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 	user := &tb.Chat{ID: ui}
-	driver.TB.Send(user, name)
+	driver.TB.Send(user, fmt.Sprintf("It's %s time to watch some %s", time, name))
 }
 func chatID(chat *tb.Chat) (ci string) {
 	byteC, err := json.Marshal(chat.ID)
